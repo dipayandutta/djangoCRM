@@ -44,3 +44,18 @@ def createOrder(request):
             return redirect('/')
     context = {'form':form}
     return render(request,'accounts/order_form.html',context)
+
+
+def updateOrder(request,pk):
+    # Pre fill the items in the list of Orders
+    order = Order.objects.get(id=pk)
+    form = OrderForm(instance=order) #instance =order this will show the data
+
+    # Now save the Update Date in the Database
+    if request.method == 'POST':
+        form = OrderForm(request.POST,instance=order) # pass the new instance i.e. the updated data
+        if form.is_valid():
+            form.save()
+            return redirect('/')
+    context = {'form':form}
+    return render(request,'accounts/order_form.html',context)
