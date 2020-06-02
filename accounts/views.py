@@ -1,5 +1,7 @@
 from django.shortcuts import render,redirect
 from .models import *
+# for multiple order from the single page
+from django.forms import inlineformset_factory
 from .forms import OrderForm
 
 # Create your views here.
@@ -34,15 +36,20 @@ def customer(request,pk_test):
     template_name = 'accounts/customer.html'
     return render(request,template_name,context)
 
-def createOrder(request):
+def createOrder(request,pk):
 
-    form = OrderForm()
+    OrderFormSet = inlineformset_factory(Customer,Order,fields=('product','status'),extra=10)#number of fields to display using extra
+    customer = Customer.objects.get(id=pk)
+    formset = OrderFormSet(queryset=Order.objects.none(),instance=customer)#Order.objects.none() will remove the initial field database value
+    #form = OrderForm(initial={'customer':customer})
     if request.method == 'POST':
-        form = OrderForm(request.POST) # this is due to the use of modelForm
-        if form.is_valid():
-            form.save()
+        #form = OrderForm(request.POST) # this is due to the use of modelForm
+        formset = OrderFormSet(request.POST,instance=customer)
+        if formset.is_valid():
+            formset.save()
             return redirect('/')
-    context = {'form':form}
+    #context = {'form':form}
+    context = {'formset':formset}
     return render(request,'accounts/order_form.html',context)
 
 
@@ -67,6 +74,6 @@ def deleteOrder(request,pk):
     if request.method == 'POST':
         order.delete()
         return redirect('/')
-        
+
     context = {'item':order}
     return render(request,'accounts/delete.html',context)
