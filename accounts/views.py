@@ -59,3 +59,14 @@ def updateOrder(request,pk):
             return redirect('/')
     context = {'form':form}
     return render(request,'accounts/order_form.html',context)
+
+
+def deleteOrder(request,pk):
+
+    order = Order.objects.get(id=pk)
+    if request.method == 'POST':
+        order.delete()
+        return redirect('/')
+        
+    context = {'item':order}
+    return render(request,'accounts/delete.html',context)
