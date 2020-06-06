@@ -10,41 +10,50 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 # importing for user authentication , login and logout
 from django.contrib.auth import authenticate , login , logout
+# login Restriction import
+from django.contrib.auth.decorators import login_required
+
 
 # Registration View
 def registerPage(request):
     #form = UserCreationForm()
-    form = CreateUserForm()
+    if request.user.is_authenticated:
+        return redirect('home')
+    else:
+        form = CreateUserForm()
 
-    if request.method == 'POST':
-        #form = UserCreationForm(request.POST)
-        form = CreateUserForm(request.POST)
-        if form.is_valid():
-            form.save()
-            #get the username
-            user = form.cleaned_data.get('username')
-            messages.success(request,'Account is created for User '+ user)
-            return redirect('login')
+        if request.method == 'POST':
+            #form = UserCreationForm(request.POST)
+            form = CreateUserForm(request.POST)
+            if form.is_valid():
+                form.save()
+                #get the username
+                user = form.cleaned_data.get('username')
+                messages.success(request,'Account is created for User '+ user)
+                return redirect('login')
 
-    context = {'form':form}
-    return render(request,'accounts/register.html',context)
+        context = {'form':form}
+        return render(request,'accounts/register.html',context)
 
 # Login View
 def loginPage(request):
 
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+    if request.user.is_authenticated:
+        return redirect('home')
+    else:
+        if request.method == 'POST':
+            username = request.POST.get('username')
+            password = request.POST.get('password')
 
-        user = authenticate(request,username=username,password=password)
+            user = authenticate(request,username=username,password=password)
 
-        if user is not None:
-            login(request,user)
-            return redirect('home')
-        else:
-            messages.info(request,'Username or password is incorrect!')
-    context = {}
-    return render(request,'accounts/login.html',context)
+            if user is not None:
+                login(request,user)
+                return redirect('home')
+            else:
+                messages.info(request,'Username or password is incorrect!')
+        context = {}
+        return render(request,'accounts/login.html',context)
 
 # Logout View
 
@@ -54,7 +63,7 @@ def logoutUser(request):
     return redirect ('login')
 
 
-
+@login_required(login_url='login')
 def home(request):
     order = Order.objects.all()
     customers = Customer.objects.all()
@@ -70,14 +79,14 @@ def home(request):
     template_name='accounts/dashboard.html'
     return render(request,template_name,context)
 
-
+@login_required(login_url='login')
 def products(request):
     template_name = 'accounts/Products.html'
     products = Product.objects.all()
     return render(request,template_name,{'products':products})
 
-    
 
+@login_required(login_url='login')
 def customer(request,pk_test):
     customer = Customer.objects.get(id=pk_test)
     
@@ -91,6 +100,7 @@ def customer(request,pk_test):
     template_name = 'accounts/customer.html'
     return render(request,template_name,context)
 
+@login_required(login_url='login')
 def createOrder(request,pk):
 
     OrderFormSet = inlineformset_factory(Customer,Order,fields=('product','status'),extra=10)#number of fields to display using extra
@@ -107,7 +117,7 @@ def createOrder(request,pk):
     context = {'formset':formset}
     return render(request,'accounts/order_form.html',context)
 
-
+@login_required(login_url='login')
 def updateOrder(request,pk):
     # Pre fill the items in the list of Orders
     order = Order.objects.get(id=pk)
@@ -122,7 +132,7 @@ def updateOrder(request,pk):
     context = {'form':form}
     return render(request,'accounts/order_form.html',context)
 
-
+@login_required(login_url='login')
 def deleteOrder(request,pk):
 
     order = Order.objects.get(id=pk)
