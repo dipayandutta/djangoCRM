@@ -91,9 +91,17 @@ def home(request):
     template_name='accounts/dashboard.html'
     return render(request,template_name,context)
 
-
+@login_required(login_url='login')
+@allowed_user(allowed_roles=['customer'])
 def userPage(request):
-    context = {}
+    #get all the customer orders
+    orders = request.user.customer.order_set.all()
+
+    total_orders = orders.count()
+    delivered = Order.objects.all().filter(status='Delivered').count()
+    pending   = orders.filter(status='Pending').count()
+    print(orders)
+    context = {'orders':orders,'total_orders':total_orders,'delivered':delivered,'pending':pending}
     return render(request,'accounts/user.html',context)
 
 
