@@ -3,8 +3,16 @@ from django.contrib.auth.forms import UserCreationForm
 from django import forms
 # importing the usermodel 
 from django.contrib.auth.models import User
-from .models import Order
+from .models import Order,Customer
 
+
+# form for User Profile Settings
+
+class CustomerForm (ModelForm):
+    class Meta:
+        model = Customer
+        fields = '__all__'
+        exlude = ['user']
 
 class OrderForm(ModelForm):
     class Meta:
